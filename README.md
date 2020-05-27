@@ -39,9 +39,11 @@ wget
 ```
 - enter the folder where the repo is stored, open a terminal / command line and type
 
-```./autotranscripts_download_convert_combine.sh
+```
+./autotranscripts_download_convert_combine.sh
 
 ```
+- you will find your data in the folder "captions" 
 
 
 
