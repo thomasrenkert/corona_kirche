@@ -37,6 +37,7 @@ python
 pip
 wget
 ```
+- make the script executable
 - enter the folder where the repo is stored, open a terminal / command line and type
 
 ```
