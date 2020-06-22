@@ -31,7 +31,7 @@ digitalekirche-corona_script_for_rqda.Rmd
 
 in RStudio.
 
-## How to use
+## How to use the pure shell script
 
 - download or clone this repository
 - have the following prerequesites installed:
