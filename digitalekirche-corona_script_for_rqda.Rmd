@@ -1,0 +1,159 @@
+---
+title: "digitalekirche-corona"
+author: "Thomas Renkert"
+date: "18 6 2020"
+output: html_document
+---
+
+# Digitale Kirche während Corona 
+
+Dieses script lädt automatisch erstellte Youtube-Untertitel einer Playlist mit Gottesdiensten während Corona (ab März 2020) herunter, konvertiert diese in Rohtext-Format, und bereitet sie vor zur qualitativen Analyse mit RQDA. Das Script kann auf unixoiden Systemen (Linux, BDS, MacOS, Windows mit Windows Subsystem for Linux (WSL)) in Rstudio blockweise ausgeführt werden. 
+
+## Voraussetzungen
+
+- r
+- rstudio
+- python
+- pip
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Dies ist ein Shellscript
+
+```{bash}
+## install youtube-dl and download the script to convert vtt files to txt
+pip install --upgrade youtube_dl
+
+wget https://raw.githubusercontent.com/thomasrenkert/corona_kirche/master/vtt2text_de.py
+
+mkdir captions
+
+cd captions
+
+mkdir txts
+
+## Download this playlist: https://www.youtube.com/playlist?list=PLwaRwXQ36qDvkhEPjds2ERcZhMo42AFg9 provided by @selinafui2@twitter.com . This may take a while. 
+
+youtube-dl -i  -o "%(upload_date)s_%(playlist_index)3d-%(title)s.%(ext)s" --sub-lang de --write-auto-sub --skip-unavailable-fragments --skip-download https://www.youtube.com/playlist?list=PLwaRwXQ36qDvkhEPjds2ERcZhMo42AFg9
+
+for i in *; do mv "$i" "$(echo "$i" | tr -d "'")"; done
+
+find . -name "*.vtt" -exec python ../vtt2text_de.py {} \;
+
+
+mv *.txt ./txts
+
+cd txts
+
+mkdir whole_corpus
+
+cat *.txt > whole_corpus/corpus.txt
+```
+
+## Voraussetzungen für RQDA
+
+```{r}
+install.packages("devtools") ## install it only if you haven't done it yet
+require(devtools)
+devtools::install_github("JanMarvin/RQDA", INSTALL_opts = "--no-multiarch")
+
+```
+
+## Voraussetzungen für R
+
+Dieser Block startet RQDA automatisch
+
+```{r}
+# Other packages needed
+library(tidyverse)
+library(RColorBrewer)
+library(d3Network)
+library(word2vec)
+library(RQDA)
+library(magrittr)
+library(dplyr)
+library(igraph)
+library(ggplot2)
+library(showtext)
+font_add_google("Roboto", "roboto")
+showtext_auto(TRUE)
+```
+
+## Manueller Zwischenschritt
+
+- Bitte zunächst manuell ein RQDA-Projekt anlegen und in RQDA öffnen. 
+
+## Optional: Import aller Transkripte ODER von Teilauswahlen
+
+### Einfügen ALLER Transkripte
+
+```{r}
+#Hiermit werden ALLE Textdateien eingefügt.
+addFilesFromDir('captions/txts', pattern = "*.txt$")
+```
+
+### Pfingsten
+
+```{r}
+#Hiermit nur die von Pfingsten.
+addFilesFromDir('captions/txts', pattern = "2020053.+\\.txt$")
+```
+
+### Himmelfahrt
+```{r}
+#Hiermit nur die von Pfingsten.
+addFilesFromDir('captions/txts', pattern = "20200519.+\\.txt$")
+addFilesFromDir('captions/txts', pattern = "20200520.+\\.txt$")
+addFilesFromDir('captions/txts', pattern = "20200521.+\\.txt$")
+```
+
+## Plots
+
+### Auto-codings
+
+Mit diesem Block lassen sich Dateien automatisch kodieren. Hierfür muss mindestens ein Code in RQDA angelegt worden sein. Die Code-ID (cid) im Block unten muss ersetzt sein durch die ID des Codes in RQDA.
+```{r}
+autokodierung <- c("Geist", "Feuer", "Wind", "Brausen", "Sprachen", "Zungen", "Himmel")
+for (i in autokodierung) {
+  codingBySearch(i,fid=getFileIds(),cid=1, seperator="[.!?]",ignore.case=TRUE)
+}
+```
+
+Weiterer Autocoding-Block
+```{r}
+autokodierung <- c("Corona", "Korona", "Virus", "Krankheit", "Epidemie", "Pandemie", "krank")
+for (i in autokodierung) {
+  codingBySearch(i,fid=getFileIds(),cid=2, seperator="[.!?]",ignore.case=TRUE)
+}
+```
+
+Weiterer Autocoding-Block
+```{r}
+autokodierung <- c("Gott", "Gottes", "Jesus", "Christus")
+for (i in autokodierung) {
+  codingBySearch(i,fid=getFileIds(),cid=4, seperator="[.!?]",ignore.case=TRUE)
+}
+```
+
+Wenn Codings fertig sind:
+
+```{r fig.width=16, fig.height=14, echo=FALSE}
+RQDAQuery("select freecode.name as codeName, codecat.name as Kategorien,
+source.name as goditranskript from coding
+left join freecode on coding.cid = freecode.id
+left join treecode on coding.cid = treecode.cid
+left join codecat on treecode.catid = codecat.catid
+left join source on coding.fid = source.id
+where coding.status == 1") %>%
+ggplot(aes(Kategorien, fill=Kategorien)) +
+geom_bar() +
+theme(text=element_text(size=15,  family="roboto")) +
+facet_wrap(~goditranskript, nrow = 15) +
+coord_flip()
+```
+
+
+
+
