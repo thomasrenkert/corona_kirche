@@ -22,6 +22,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Dies ist ein Shellscript
 
+Es lädt die notwendige Python-Software runter, legt Verzeichnisse für Untertitel an, lädt Untertitel von Youtube, löscht problematische Zeichen in Dateinamen und konvertiert die vtt-Untertitel-Dateien in txt. Dieser Teil des scripts benötigt Unix-tools.
+
 ```{bash}
 ## install youtube-dl and download the script to convert vtt files to txt
 pip install --upgrade youtube_dl
@@ -63,7 +65,7 @@ devtools::install_github("JanMarvin/RQDA", INSTALL_opts = "--no-multiarch")
 
 ## Voraussetzungen für R
 
-Dieser Block startet RQDA automatisch
+Dieser Block startet RQDA automatisch und lädt weitere notwendige und optionale R-Pakete.
 
 ```{r}
 # Other packages needed
