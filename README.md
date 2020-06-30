@@ -1,7 +1,6 @@
-# Digitale Kirche während Corona
-## Digital church programs during coronavirus
+# Corona: Churches Coping with Crisis. A Digital Humanities Analysis
 
-### Some small-scale text mining prototyping with data from Youtube
+(version 0.2)
 
 ## This project consists of 
 
